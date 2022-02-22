@@ -1,0 +1,11 @@
+---
+# The name of the playbook is passed in from Vagrantfile.
+# Ansible provisioner needs an existing playbook file before it 
+# runs the ansible galaxy install. So this file is to prevent the
+# provisioner from erroring when trying to call a playbook imported
+# from an ansible collection.
+
+# Default is bernardko.coord.setup. This can be set to 
+# any playbook using environment variables on the command line.
+# e.g. PLAYBOOK=bernardko.coord.setup TAGS=all vagrant provision
+- import_playbook: "{{ playbook_name }}"

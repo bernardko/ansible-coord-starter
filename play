@@ -1,0 +1,45 @@
+#!/bin/bash
+
+#     A convenience script to simplify calling ansible-playbook
+#
+#    ./play <inventory_name> <environment> <namespace.collection.playbook> <tags>
+#
+#    test-inventory setup commands:
+#    ./play test-inventory local bernardko.coord.setup
+#    ./play test-inventory local bernardko.coord.deploy
+#
+#    test-inventory control commands:
+#    ./play test-inventory local bernardko.coord.processes start
+#    ./play test-inventory local bernardko.coord.processes stop
+#    ./play test-inventory local bernardko.coord.processes restart
+#
+#    test-inventory clean up commands (Becareful running these, DELETE actually deletes data):
+#    ./play test-inventory local bernardko.coord.delete
+#
+#    Using .env file and setting defaults so we can shorten this command:
+#    ./play test-inventory local deploy
+#
+#    Equivalent to:
+#    ./play test-inventory local
+
+ENVFILE=.env
+if [ -f "$ENVFILE" ]; then
+    echo "Using $ENVFILE file..."
+    source $ENVFILE
+fi
+
+# Allow this to be overridden by environment variables
+PLAYBOOK_PREFIX=${PLAYBOOK_PREFIX:-"bernardko.coord"}
+DEFAULT_PLAYBOOK=${DEFAULT_PLAYBOOK:-"setup"}
+
+INVENTORY=$1
+ENVIRONMENT=$2
+PLAYBOOK=${3:-$DEFAULT_PLAYBOOK}
+TAGS=${4:-"all"}
+
+# Check if PLAYBOOK argument is namespaced. If not, use PLAYBOOK_PREFIX.
+if [[ "$PLAYBOOK" != *"."* ]]; then
+  PLAYBOOK="$PLAYBOOK_PREFIX.$PLAYBOOK"
+fi
+
+ansible-playbook -e @$INVENTORY/$ENVIRONMENT/$ENVIROMENT.vault --ask-vault-pass --inventory-file=$INVENTORY/$ENVIRONMENT "${PLAYBOOK}" --extra-vars="files=$PWD/$INVENTORY/files inventory_name=$INVENTORY env=$ENVIRONMENT" --tags="$TAGS"

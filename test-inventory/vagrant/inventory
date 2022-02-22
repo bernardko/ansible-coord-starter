@@ -1,0 +1,123 @@
+all:
+  # Precedence 1 Variables
+  # Available to all playbooks
+  vars:
+    # ansible_user is passed in from vagrant ansible provisioner    
+    # ansible_become_pass loaded from encrypted vagrant.vault file
+    
+    # project_name variable needed here to configure host specific 
+    # configuration
+    project_name: "test_django_project"
+  
+  # Precedence 2 Variables
+  # Available to specific hosts
+  # Set configuration specific to the host
+  hosts:
+    vagranthost:
+      ansible_host: 127.0.0.1
+      ansible_ssh_port: 2222
+
+      # Configuration available to this host and group only
+      uvicorn:
+        - name: "django2"
+          asgi: "{{ project_name }}.asgi:application"
+          host: localhost
+          port: 25000
+          processes: 4
+          remove: yes
+        - name: "django3"
+          asgi: "{{ project_name }}.asgi:application"
+          host: localhost
+          port: 25000
+          processes: 4
+          
+      # celery worker configuration may differ between servers
+      # specify server specific configuration here
+      celery:
+        workers:
+          - node_name: worker2
+            queues: celery
+            concurrency: 1
+            remove: yes
+          - node_name: worker3
+            queues: celery
+            concurrency: 1
+
+  # Set configuration specific group or specific host in group
+  children:
+    appservers:
+      hosts:
+        vagranthost:
+          # Specify django_commands where you want them to run.
+          django_commands:
+            migrate: yes
+            collectstatic: yes
+
+    taskservers:
+      hosts:
+        vagranthost:
+
+    loadbalancers:
+      hosts:
+        vagranthost:
+          nginx:
+            # Nginx SSL Security Setting
+            # Enabling this will generate a dhparam.pem file once which can take a long time
+            strong_ssl: yes
+            
+            # SSL settings for Let's Encrypt SSL
+            # ssl: yes
+            # ssl_domain: "example.com"
+            config:
+              - name: "{{ project_name }}2"
+                config_template: "{{ files }}/nginx/vhost.proxy.conf.j2"
+                servernames:
+                  - "localhost"
+                proxy_url: "http://127.0.0.1:25000"
+                remove: yes
+              - name: "{{ project_name }}3"
+                config_template: "{{ files }}/nginx/vhost.proxy.conf.j2"
+                servernames:
+                  - "localhost"
+                proxy_url: "http://127.0.0.1:25000"
+
+    dbservers:
+      hosts:
+        vagranthost:
+          postgresql:
+            name: "{{ project_name }}"
+            host: localhost
+            port: 5432
+            user: "{{ project_name }}"
+            # pg_password loaded from encrypted vagrant.vault file
+            password: "{{ pg_password }}"
+
+    queueservers:
+      hosts:
+        vagranthost:
+          rabbitmq:
+            vhost: "{{ project_name }}"
+            users:
+              - user: "{{ project_name }}"
+                # rabbit_password loaded from encrypted vagrant.vault file
+                password: "{{ rabbit_password }}"
+                configure_priv: .*
+                write_priv: .*
+                read_priv: .*
+
+    cacheservers:
+      hosts:
+        vagranthost:
+          memcached:
+            listen: "127.0.0.1"
+            port: 11211
+            memory: 1024
+
+    # Sample configuration to delete all configuration
+    # and data from a list of hosts running the
+    # bernardko.coord.delete playbook.
+    deleteservers:
+      hosts:
+        vagranthost:
+
+

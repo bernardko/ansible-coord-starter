@@ -1,0 +1,74 @@
+---
+# Third Priority Variables
+# Available to all playbooks
+
+# Most variables should go in this file unless they should
+# only be available to certain hosts or groups
+
+project_user: "{{ ansible_user }}"
+project_group: "{{ ansible_user }}"
+python_version: "3.10.2"
+project_name: "test_django_project"
+repo:
+  branch: main
+  url: "https://github.com/bernardko/test-django-project.git"
+
+project_base: "/home/{{ project_user }}"
+project_root: "{{ project_base }}/{{ project_name }}"
+project_src: "{{ project_root }}/src"
+project_logs: "{{ project_root }}/logs"
+static_root: "{{ project_src }}/static"
+virtualenv: "{{ project_base }}/.pyenv/versions/{{ python_version }}/envs/{{ project_name }}"
+
+# avanov.pyenv Settings
+pyenv_path: "/home/{{ project_user }}/.pyenv"
+pyenv_owner: "{{ project_user }}"
+pyenv_global: "{{ python_version }}"
+pyenv_update_git_install: yes
+pyenv_enable_autocompletion: no
+pyenv_python_versions:
+  - "{{ python_version }}"
+pyenv_virtualenvs:
+  - venv_name: "{{ project_name }}"
+    py_version: "{{ python_version }}"
+
+# Paths to create during provision
+create_paths:
+  - "{{ project_root }}/testdata"
+
+# Packages to install during provision
+sys_packages:
+  - libxml2-dev 
+  - libxslt-dev
+  - libtiff5-dev 
+  - libjpeg8-dev 
+  - libopenjp2-7-dev 
+  - zlib1g-dev
+  - libfreetype6-dev 
+  - liblcms2-dev 
+  - libwebp-dev 
+  - tcl8.6-dev 
+  - tk8.6-dev 
+  - python3-tk
+  - libharfbuzz-dev 
+  - libfribidi-dev 
+  - libxcb1-dev
+
+# Django Settings
+pipenv: yes
+django_settings: "{{ project_name }}.settings.local"
+
+# Dotenv File Settings
+dot_env_file: 
+  dest: "{{ project_src }}/.env"
+
+# The dot_env variable is written exactly as the .env file
+dot_env:
+  DJANGO_DEBUG: False
+  DJANGO_SETTINGS_MODULE: "{{ django_settings }}"
+  # django_secret_key is loaded from encrypted local.vault file
+  DJANGO_SECRET_KEY: "{{ django_secret_key }}"
+  DATABASE_URL: "psql://{{ project_name }}:{{ pg_password }}@localhost:5432/{{ project_name }}"
+  CELERY_BROKER_URL: "amqp://{{ project_name }}:{{ rabbit_password }}@localhost:5672/{{ project_name }}"
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+  DJANGO_CACHE_LOCATIONS: 127.0.0.1:11211

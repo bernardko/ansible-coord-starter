@@ -1,0 +1,89 @@
+all:
+  # Precedence 1 Variables
+  # Available to all playbooks
+  vars:  
+    # ansible_user and ansible_become_pass are set and encrypted inside the local.vault
+
+  # Precedence 2 Variables
+  # Available to specific hosts
+  hosts:
+    localhost:
+
+      # Example - Configuration available to this host only
+      uvicorn:
+        - name: "django"
+          asgi: "{{ project_name }}.asgi:application"
+          host: localhost
+          port: 25000
+          processes: 4
+          
+  # Available to specific group or specific host in group
+  children:
+    appservers:
+      hosts:
+        localhost:
+          # Specify django_commands where you want them to run.
+          django_commands:
+            migrate: yes
+            collectstatic: yes
+
+    taskservers:
+      hosts:
+        localhost:
+          # celery worker configuration may differ between servers
+          # specify server specific configuration here
+          celery:
+            workers:
+              - node_name: worker
+                queues: celery
+                concurrency: 1
+
+    loadbalancers:
+      hosts:
+        localhost:
+          nginx:
+            # Nginx SSL Security Setting
+            # Enabling this will generate a dhparam.pem file once which takes a long time
+            strong_ssl: no
+
+            # SSL settings for Let's Encrypt SSL
+            # ssl: yes
+            # ssl_domain: "example.com"
+            config:
+              - name: "{{ project_name }}"
+                config_template: "{{ files }}/nginx/vhost.proxy.conf.j2"
+                servernames:
+                  - "localhost"
+                proxy_url: "http://127.0.0.1:25000"
+
+    dbservers:
+      hosts:
+        localhost:
+          postgresql:
+            name: "{{ project_name }}"
+            host: localhost
+            port: 5432
+            user: "{{ project_name }}"
+            # pg_password loaded from encrypted vagrant.vault file
+            password: "{{ pg_password }}"
+            
+    queueservers:
+      hosts:
+        localhost:
+          rabbitmq:
+            vhost: "{{ project_name }}"
+            users:
+              - user: "{{ project_name }}"
+                # rabbit_password loaded from encrypted local.vault file
+                password: "{{ rabbit_password }}"
+                configure_priv: .*
+                write_priv: .*
+                read_priv: .*
+        
+    cacheservers:
+      hosts:
+        localhost:
+          memcached:
+            listen: "127.0.0.1"
+            port: 11211
+            memory: 1024

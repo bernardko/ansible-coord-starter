@@ -1,0 +1,53 @@
+server {
+
+    
+    {% if item.ssl is defined  %}
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    {% else %}
+    listen                  80;
+    {% endif %}
+
+    charset                 utf-8;
+    server_tokens           off;
+
+    server_name             {% for name in item.servernames %}{{name}} {% endfor %};
+
+    {% if item.ssl is defined %}
+        ssl_certificate /etc/letsencrypt/live/{{ item.ssl_domain }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ item.ssl_domain }}/privkey.pem;
+        {% if nginx.strong_ssl|d(False) == True %}
+            include /etc/nginx/snippets/ssl-params.conf;
+        {% endif %}
+    {% endif %}
+
+
+    access_log              {{ project_logs }}/nginx.access.{{ ansible_fqdn }}.log;
+    error_log               {{ project_logs }}/nginx.error.{{ ansible_fqdn }}.log;
+
+    expires modified        -1d;
+
+    rewrite                 ^/(.*)/favicon.ico$ /favicon.ico last;
+
+    location / {
+        # serve static files from defined root folder;.
+        # @{{project_name}} is a named location for the upstream fallback, see below
+        try_files $uri $uri/index.html $uri.html @{{project_name}}_{{ item.name }};
+    }
+
+    location /static {
+        alias {{ static_root }};
+        autoindex off;
+    }
+    
+    location @{{ project_name }}_{{ item.name }} {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+        proxy_buffering off;
+        proxy_pass {{ item.proxy_url }};
+    }
+
+}
+

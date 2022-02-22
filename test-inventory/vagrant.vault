@@ -1,0 +1,5 @@
+ansible_user: vagrant
+ansible_become_pass: vagrant
+django_secret_key: django-insecure-l+-qgrhsoww#79$rp#su_-c(#m1ph8*10abwzkp5#-t8*^&876
+pg_password: 123456
+rabbit_password: 123456
