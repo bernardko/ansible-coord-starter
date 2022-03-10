@@ -25,7 +25,7 @@ all:
           port: 25000
           processes: 4
           remove: yes
-        - name: "django3"
+        - name: "django"
           asgi: "{{ project_name }}.asgi:application"
           host: localhost
           port: 25000
@@ -39,7 +39,7 @@ all:
             queues: celery
             concurrency: 1
             remove: yes
-          - node_name: worker3
+          - node_name: worker
             queues: celery
             concurrency: 1
 
@@ -63,7 +63,7 @@ all:
           nginx:
             # Nginx SSL Security Setting
             # Enabling this will generate a dhparam.pem file once which can take a long time
-            strong_ssl: yes
+            strong_ssl: no
             
             # SSL settings for Let's Encrypt SSL
             # ssl: yes
@@ -75,7 +75,7 @@ all:
                   - "localhost"
                 proxy_url: "http://127.0.0.1:25000"
                 remove: yes
-              - name: "{{ project_name }}3"
+              - name: "{{ project_name }}"
                 config_template: "{{ files }}/nginx/vhost.proxy.conf.j2"
                 servernames:
                   - "localhost"

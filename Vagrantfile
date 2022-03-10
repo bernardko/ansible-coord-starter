@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 Vagrant.configure("2") do |config|
     config.vm.box = "ubuntu/focal64"
+    config.ssh.forward_agent = true
   
     inventory_name = ENV.fetch("INVENTORY", "test-inventory")
     tags = ENV.fetch("TAGS", "all")
     playbook = ENV.fetch("PLAYBOOK", "bernardko.coord.setup")
     extra_files = File.expand_path("./#{inventory_name}/files/", File.dirname(__FILE__))
-  
+
     # Provide enough RAM to build python 3
     config.vm.provider :virtualbox do |virtualbox|
       virtualbox.customize ["modifyvm", :id, "--memory", 2048]

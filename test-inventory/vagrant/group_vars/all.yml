@@ -4,11 +4,12 @@
 
 # Most variables should go in this file unless they should
 # only be available to certain hosts or groups
+# Project Role Settings
 project_user: "{{ ansible_user }}"
 project_group: "{{ ansible_user }}"
 python_version: "3.10.2"
 repo:
-  branch: main
+  version: main
   url: "https://github.com/bernardko/test-django-project.git"
 
 project_base: "/home/{{ project_user }}"
@@ -17,6 +18,10 @@ project_src: "{{ project_root }}/src"
 project_logs: "{{ project_root }}/logs"
 static_root: "{{ project_src }}/static"
 virtualenv: "{{ project_base }}/.pyenv/versions/{{ python_version }}/envs/{{ project_name }}"
+
+# Application Role Settings
+framework: django
+package_manager: 'pipenv'
 
 # pyenv settings
 pyenv_python_versions:
@@ -48,7 +53,6 @@ sys_packages:
   - libxcb1-dev
 
 # Django Settings
-pipenv: yes
 django_settings: "{{ project_name }}.settings.local"
 
 # Dotenv File Settings
