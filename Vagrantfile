@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
       node.vm.box = "ubuntu/focal64"
       node.vm.hostname = "vagranthost"
       node.vm.network :forwarded_port, guest: 80, host: 8080
-      node.vm.network :private_network, ip: "192.168.139.100"
+      node.vm.network :private_network, ip: "192.168.56.100"
       node.vm.provision :ansible do |ansible|
         ansible.playbook = File.expand_path("vagrant.yml")
         ansible.inventory_path = "./#{inventory_name}/vagrant"
