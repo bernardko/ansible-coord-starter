@@ -42,4 +42,4 @@ if [[ "$PLAYBOOK" != *"."* ]]; then
   PLAYBOOK="$PLAYBOOK_PREFIX.$PLAYBOOK"
 fi
 
-ansible-playbook -e @$INVENTORY/$ENVIRONMENT/$ENVIROMENT.vault --ask-vault-pass --inventory-file=$INVENTORY/$ENVIRONMENT "${PLAYBOOK}" --extra-vars="files=$PWD/$INVENTORY/files inventory_name=$INVENTORY env=$ENVIRONMENT" --tags="$TAGS"
+ansible-playbook -e @$INVENTORY/$ENVIRONMENT/$ENVIRONMENT.vault --ask-vault-pass --inventory-file=$INVENTORY/$ENVIRONMENT "${PLAYBOOK}" --extra-vars="files=$PWD/$INVENTORY/files inventory_name=$INVENTORY env=$ENVIRONMENT" --tags="$TAGS"
