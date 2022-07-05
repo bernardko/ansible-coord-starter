@@ -28,6 +28,10 @@ if [ -f "$ENVFILE" ]; then
     source $ENVFILE
 fi
 
+# Allow specifying full path of ansible-playbook binary
+# Useful for running playbooks in CRON using a virtualenv
+ANSIBLE_PLAYBOOK_PATH=${ANSIBLE_PLAYBOOK:-"ansible-playbook"}
+
 # Allow this to be overridden by environment variables
 PLAYBOOK_PREFIX=${PLAYBOOK_PREFIX:-"bernardko.coord"}
 DEFAULT_PLAYBOOK=${DEFAULT_PLAYBOOK:-"setup"}
@@ -42,4 +46,4 @@ if [[ "$PLAYBOOK" != *"."* ]]; then
   PLAYBOOK="$PLAYBOOK_PREFIX.$PLAYBOOK"
 fi
 
-ansible-playbook -e @$INVENTORY/$ENVIRONMENT/$ENVIRONMENT.vault --ask-vault-pass --inventory-file=$INVENTORY/$ENVIRONMENT "${PLAYBOOK}" --extra-vars="files=$PWD/$INVENTORY/files inventory_name=$INVENTORY env=$ENVIRONMENT" --tags="$TAGS"
+$ANSIBLE_PLAYBOOK_PATH -e @$INVENTORY/$ENVIRONMENT/$ENVIRONMENT.vault --ask-vault-pass --inventory-file=$INVENTORY/$ENVIRONMENT "${PLAYBOOK}" --extra-vars="files=$PWD/$INVENTORY/files inventory_name=$INVENTORY env=$ENVIRONMENT" --tags="$TAGS"
